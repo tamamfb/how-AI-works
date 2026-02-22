@@ -25,11 +25,10 @@ Fondasi dari semua model ML adalah data yang berkualitas. Di sini kita akan bela
 
 | Topik | Deskripsi |
 |---|---|
-| 📥 Data Collection | Cara mengumpulkan data dari berbagai sumber |
+| 📊 Exploratory Data Analysis (EDA) | Memahami distribusi dan pola dalam data |
 | 🧹 Data Cleaning | Menangani missing values, outliers, dan duplikasi |
 | 🔄 Data Preprocessing | Normalisasi, encoding, dan feature engineering |
 | ✂️ Train/Test Split | Strategi pembagian dataset |
-| 📊 Exploratory Data Analysis (EDA) | Memahami distribusi dan pola dalam data |
 
 ---
 
