@@ -1,4 +1,4 @@
-# 🤖 Machine Learning
+# Machine Learning
 
 > Modul ini membahas konsep dasar hingga lanjutan dalam Machine Learning — dari persiapan data, algoritma pembelajaran terawasi, tanpa pengawas, hingga pembelajaran berbasis penguatan.
 
