@@ -4,6 +4,7 @@
 
 - [Daftar Isi](#daftar-isi)
 - [Pendahuluan](#pendahuluan)
+- [Main Course](#main-course)
 
 ## Pendahuluan
 Oke sebelum kita mulai, mari kita lihat bersama Alur sebuah model ML dibuat:
