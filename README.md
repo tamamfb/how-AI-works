@@ -1,1 +1,1 @@
-How AI works (in giberish language XD)
+How AI works (in giberish language)
