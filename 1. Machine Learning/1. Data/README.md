@@ -75,6 +75,7 @@ Lihat beberapa baris pertama dan ukuran dataset.
 df.head(5)
 print("Shape:", df.shape)
 ```
+<img width="1240" height="421" alt="image" src="https://github.com/user-attachments/assets/ee8fe662-553b-4002-816a-e8862b8e3dbb" />
 
 ### Tipe Data & Statistik Deskriptif
 
@@ -85,9 +86,29 @@ df.describe()
 
 `describe()` langsung kasih ringkasan statistik (mean, std, min, max, dll.) untuk semua kolom numerik sekaligus.
 
+<img width="1247" height="722" alt="image" src="https://github.com/user-attachments/assets/f0597316-7d9f-4568-a061-b054052a3ba4" />
+
 ### Distribusi Data
 
 Cek distribusi setiap kolom numerik pakai **Histogram**, **KDE plot**, dan **Boxplot**. Dari sini kita bisa lihat apakah data normal, skewed, atau ada anomali.
+
+```python
+fig, axes = plt.subplots(3, len(num_cols), figsize=(14, 10))
+for i, col in enumerate(num_cols):
+    data = df[col].dropna()
+    # Histogram
+    axes[0, i].hist(data, bins=20, edgecolor='black')
+    axes[0, i].set_title(f'Histogram – {col}')
+    # KDE
+    data.plot.kde(ax=axes[1, i])
+    axes[1, i].set_title(f'KDE – {col}')
+    # Boxplot
+    axes[2, i].boxplot(data)
+    axes[2, i].set_title(f'Boxplot – {col}')
+plt.tight_layout()
+plt.show()
+```
+<img width="1403" height="989" alt="image" src="https://github.com/user-attachments/assets/96ae6121-bc55-4007-8414-4b2af8340a46" />
 
 ### Missing Values
 
@@ -113,13 +134,63 @@ print("Jumlah duplikat:", df.duplicated().sum())
 
 Visualisasi hubungan antar kolom numerik pakai **heatmap**. Kalau dua fitur berkorelasi sangat tinggi, mungkin salah satunya bisa dihapus (redundant).
 
+```python
+corr = df[num_cols].corr()
+plt.figure(figsize=(8, 6))
+sns.heatmap(corr, annot=True, fmt='.2f', cmap='coolwarm')
+plt.title('Correlation Heatmap')
+plt.tight_layout()
+plt.show()
+```
+<img width="754" height="590" alt="image" src="https://github.com/user-attachments/assets/84451402-3c21-45ab-ba86-a7bdad9f814d" />
+
 ### Outlier
 
 Deteksi outlier secara visual (boxplot) dan kuantitatif (IQR).
 
+```python
+# Visual (Boxplot semua numerik)
+plt.figure(figsize=(12, 4))
+df[num_cols].boxplot()
+plt.title('Outlier – Boxplot')
+plt.tight_layout()
+plt.show()
+# IQR
+print("\nJumlah outlier per kolom (IQR method):")
+for col in num_cols:
+    Q1 = df[col].quantile(0.25)
+    Q3 = df[col].quantile(0.75)
+    IQR = Q3 - Q1
+    outliers = df[(df[col] < Q1 - 1.5 * IQR) | (df[col] > Q3 + 1.5 * IQR)]
+    print(f"  {col}: {len(outliers)} outlier")
+```
+<img width="1229" height="624" alt="image" src="https://github.com/user-attachments/assets/77cfa1ee-37f4-47f2-97a6-46a0c9a1736b" />
+
 ### Class Imbalance
 
 Kalau ini supervised learning, cek apakah distribusi kelas target seimbang. Model bisa bias ke kelas mayoritas kalau datanya imbalanced!
+
+```python
+target = 'Survived'   # ganti sesuai kolom target kalian uy
+
+counts = df[target].value_counts()
+pct    = df[target].value_counts(normalize=True) * 100
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+counts.plot.bar(ax=axes[0], edgecolor='black')
+axes[0].set_title('Class Count')
+axes[0].tick_params(axis='x', rotation=0)
+
+axes[1].pie(counts, labels=counts.index, autopct='%1.1f%%')
+axes[1].set_title('Class Distribution')
+
+plt.suptitle(f'Class Imbalance – {target}', fontsize=13)
+plt.tight_layout()
+plt.show()
+
+print(pct.round(2).to_string())
+```
+<img width="890" height="396" alt="image" src="https://github.com/user-attachments/assets/a25826e1-c7ba-4052-bab1-e87437a4a37a" />
 
 ---
 
