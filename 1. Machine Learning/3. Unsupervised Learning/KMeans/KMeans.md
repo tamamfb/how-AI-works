@@ -23,7 +23,7 @@ K-Means adalah algoritma clustering yang paling populer dan paling sering dipaka
 K-Means bekerja secara **iteratif** melalui langkah-langkah berikut:
 
 1. **Inisialisasi** → Pilih K centroid secara acak dari data
-2. **Assignment** → Setiap data point ditetapkan ke centroid terdekat (pakai jarak Euclidean)
+2. **Assignment** → Setiap data point ditetapkan ke centroid terdekat (pakai jarak Euclidean / Manhattan)
 3. **Update** → Centroid diupdate menjadi rata-rata (mean) dari semua anggota cluster
 4. **Ulangi** langkah 2-3 sampai centroid tidak berubah (konvergen)
 
@@ -36,6 +36,8 @@ $$d(x, c) = \sqrt{\sum_{i=1}^{n}(x_i - c_i)^2}$$
 ## Menentukan Nilai K (Elbow Method)
 
 Salah satu tantangan K-Means adalah: **berapa nilai K yang tepat?** 🤔
+
+<img width="512" height="275" alt="image" src="https://github.com/user-attachments/assets/613c4694-4ee4-4cf5-b8a7-b3a16e013962" />
 
 Jawabnya pakai **Elbow Method** — plot nilai inertia untuk berbagai K, lalu lihat di mana grafiknya "menyiku" (elbow). Titik siku itulah K optimal.
 
