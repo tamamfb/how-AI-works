@@ -5,6 +5,7 @@
 - [Apa itu K-Means?](#apa-itu-k-means)
 - [Cara Kerja](#cara-kerja)
 - [Menentukan Nilai K](#menentukan-nilai-k-elbow-method)
+- [WCSS](#wcss-within-cluster-sum-of-squares)
 - [Implementasi](#implementasi)
 - [Kelebihan & Kekurangan](#kelebihan--kekurangan)
 
@@ -59,6 +60,22 @@ plt.title('Elbow Method')
 plt.tight_layout()
 plt.show()
 ```
+
+---
+
+## WCSS (Within-Cluster Sum of Squares)
+
+**WCSS** (atau *Inertia*) adalah metrik yang mengukur seberapa kompak cluster yang terbentuk. Rumusnya adalah jumlah kuadrat jarak setiap data ke centroid cluster-nya masing-masing:
+
+$$WCSS = \sum_{k=1}^{K} \sum_{x \in C_k} \|x - \mu_k\|^2$$
+
+Di mana:
+- $K$ = jumlah cluster
+- $C_k$ = himpunan data dalam cluster ke-$k$
+- $\mu_k$ = centroid cluster ke-$k$
+- $\|x - \mu_k\|^2$ = kuadrat jarak Euclidean dari data $x$ ke centroid-nya
+
+> **Intinya:** Semakin kecil WCSS, semakin data dalam satu cluster *berkumpul rapat* di sekitar centroidnya → clustering makin bagus.
 
 ---
 
