@@ -123,8 +123,6 @@ plt.show()
 | Konvergensi terjamin | Hasil bisa berbeda tiap run (inisialisasi acak) |
 | Interpretasi cluster mudah | Asumsi cluster berbentuk bulat (spherical) |
 
-> 💡 **Tips:** Gunakan `KMeans(init='k-means++')` untuk inisialisasi centroid yang lebih cerdas dan hasil yang lebih konsisten!
-
 ---
 
 ## Referensi
