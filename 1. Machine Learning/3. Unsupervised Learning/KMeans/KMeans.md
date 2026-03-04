@@ -108,6 +108,11 @@ labels = kmeans.labels_
 sil = silhouette_score(X_train, labels)
 print(f"Silhouette Score : {sil:.4f}")
 ```
+---
+
+## Elbow Method vs Silhouett score
+
+<img width="590" height="390" alt="image" src="https://github.com/user-attachments/assets/f35c04bb-4fff-41f3-bca1-6e7b53acc3e0" />
 
 ---
 
