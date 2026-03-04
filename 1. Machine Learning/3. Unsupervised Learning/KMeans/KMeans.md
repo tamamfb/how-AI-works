@@ -6,6 +6,7 @@
 - [Cara Kerja](#cara-kerja)
 - [Menentukan Nilai K](#menentukan-nilai-k-elbow-method)
 - [WCSS](#wcss-within-cluster-sum-of-squares)
+- [Silhouette Score](#silhouette-score)
 - [Implementasi](#implementasi)
 - [Kelebihan & Kekurangan](#kelebihan--kekurangan)
 
@@ -76,6 +77,37 @@ Di mana:
 - $\|x - \mu_k\|^2$ = kuadrat jarak Euclidean dari data $x$ ke centroid-nya
 
 > **Intinya:** Semakin kecil WCSS, semakin data dalam satu cluster *berkumpul rapat* di sekitar centroidnya → clustering makin bagus.
+
+---
+
+## Silhouette Score
+
+**Silhouette Score** adalah metrik evaluasi clustering yang mengukur seberapa baik setiap data masuk ke cluster-nya sendiri dibandingkan cluster lain. Nilainya berkisar antara **-1 sampai 1**.
+
+$$s(i) = \frac{b(i) - a(i)}{\max(a(i),\, b(i))}$$
+
+Di mana:
+- $a(i)$ = rata-rata jarak titik $i$ ke semua titik **dalam cluster yang sama** (cohesion)
+- $b(i)$ = rata-rata jarak titik $i$ ke semua titik **di cluster terdekat lainnya** (separation)
+
+### Interpretasi Nilai
+
+| Nilai | Artinya |
+|-------|---------|
+| Mendekati **1** | Data sudah di cluster yang tepat 🎯 |
+| Sekitar **0** | Data berada di perbatasan antara dua cluster |
+| Mendekati **-1** | Data kemungkinan masuk ke cluster yang salah ❌ |
+
+> **Intinya:** Kita mau nilai silhouette yang **setinggi mungkin**. Kalau rendah, coba ganti jumlah cluster K-nya.
+
+```python
+from sklearn.metrics import silhouette_score
+
+# Hitung setelah fit
+labels = kmeans.labels_
+sil = silhouette_score(X_train, labels)
+print(f"Silhouette Score : {sil:.4f}")
+```
 
 ---
 
