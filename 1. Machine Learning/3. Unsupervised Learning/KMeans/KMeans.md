@@ -27,8 +27,6 @@ K-Means bekerja secara **iteratif** melalui langkah-langkah berikut:
 3. **Update** → Centroid diupdate menjadi rata-rata (mean) dari semua anggota cluster
 4. **Ulangi** langkah 2-3 sampai centroid tidak berubah (konvergen)
 
-$$d(x, c) = \sqrt{\sum_{i=1}^{n}(x_i - c_i)^2}$$
-
 > Semakin kecil total jarak data ke centroid-nya (disebut **inertia** atau WCSS), semakin bagus clusteringnya.
 
 ---
