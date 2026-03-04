@@ -85,27 +85,57 @@ Di mana:
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
 
-# 1. Scaling dulu (K-Means sensitif terhadap skala!)
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+# Data train
+X_train = [
+    [50, 1], 
+    [60, 2], 
+    [80, 3], 
+    [100, 3], 
+    [120, 3], 
+    [150, 4]
+]
 
-# 2. Fit K-Means
-km = KMeans(n_clusters=3, random_state=42, n_init='auto')
-labels = km.fit_predict(X_scaled)
+# Data uji / test
+X_test = [
+    [130, 3],
+    [160, 4]
+]
 
-# 3. Evaluasi
-sil = silhouette_score(X_scaled, labels)
+# 1. Inisialisasi dan melatih model K-Means
+kmeans = KMeans(
+    n_clusters=2,      # Jumlah klaster yang ingin dibentuk
+    init="k-means++",  # Metode inisialisasi centroid
+    n_init=10,         # Berapa kali algoritma dicoba untuk hasil terbaik
+    max_iter=300,      # Iterasi maksimum
+)
+kmeans.fit(X_train)
+
+# 2. Evaluasi
+labels_train = kmeans.labels_
+sil = silhouette_score(X_train, labels_train)
 print(f"Silhouette Score : {sil:.4f}")
-print(f"Inertia          : {km.inertia_:.2f}")
+print(f"WCSS (Inertia)   : {kmeans.inertia_:.2f}")
+print(f"Centroid         :\n{kmeans.cluster_centers_}")
 
-# 4. Visualisasi (untuk 2D)
-plt.figure(figsize=(8, 5))
-plt.scatter(X_scaled[:, 0], X_scaled[:, 1], c=labels, cmap='tab10', s=40)
-plt.scatter(km.cluster_centers_[:, 0], km.cluster_centers_[:, 1],
-            c='black', marker='X', s=200, label='Centroid')
+# 3. Prediksi data uji
+y_pred = kmeans.predict(X_test)
+print(f"\nHasil prediksi X_test : {y_pred}")
+# Output: [0] atau [1] — menunjukkan data uji masuk ke cluster mana
+
+# 4. Visualisasi
+plt.figure(figsize=(7, 5))
+plt.scatter(
+    np.array(X_train)[:, 0], np.array(X_train)[:, 1],
+    c=labels_train, cmap='tab10', s=100, label='Train'
+)
+plt.scatter(
+    np.array(X_test)[:, 0], np.array(X_test)[:, 1],
+    c=y_pred, cmap='tab10', s=200, marker='*', edgecolors='black', label='Test'
+)
+plt.xlabel('Fitur 1')
+plt.ylabel('Fitur 2')
 plt.title('K-Means Clustering')
 plt.legend()
 plt.tight_layout()
