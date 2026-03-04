@@ -9,7 +9,7 @@
 
 ## Pengenalan
 
-Oke, sebelumnya kita udah kenalan sama **Supervised Learning** — model yang belajar dari data **berlabel**. Nah, *Unsupervised Learning* ini beda.
+Oke, sebelumnya kita udah kenalan sama **Supervised Learning** model yang belajar dari data **berlabel**. Nah, *Unsupervised Learning* ini kebalikannya.
 
 Unsupervised learning adalah paradigma dalam pembelajaran mesin yang menggunakan data **tidak berlabel** untuk melatih algoritma. Artinya, modelnya belajar sendiri tanpa ada "kunci jawaban" dari kita. Tujuannya bukan untuk memprediksi sesuatu yang spesifik, tapi untuk **menemukan pola atau struktur tersembunyi** dalam data.
 
