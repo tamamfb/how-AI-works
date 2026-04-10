@@ -292,7 +292,19 @@ Linear Regression dan Decision Tree Regressor.
 > ⚠️ `app_port` harus sama dengan `EXPOSE` dan `--server.port` di Dockerfile (7860).  
 > Saat SDK Docker, field `sdk_version` dan `app_file` **tidak dipakai**.
 
-#### 4. Track model dengan git-lfs lalu push
+#### 4. Login ke HuggingFace
+
+Sebelum bisa push, harus autentikasi ke HuggingFace terlebih dahulu:
+
+```bash
+# Install HuggingFace CLI
+pip install -U "huggingface_hub[cli]"
+
+# Login — akan minta token (buat di huggingface.co > Settings > Access Tokens)
+hf auth login
+```
+
+#### 5. Track model dengan git-lfs lalu push
 
 File `.gitattributes` sudah ada dari template HuggingFace dan sudah men-track `*.pkl`. Tinggal commit dan push:
 
