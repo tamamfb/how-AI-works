@@ -5,7 +5,7 @@
 1. [Apa itu HuggingFace Spaces?](#apa-itu-huggingface-spaces)
 2. [Persiapan Lokal](#persiapan-lokal)
 3. [Struktur Project](#struktur-project)
-4. [Membuat Streamlit App](#membuat-streamlit-app)
+4. [Membuat Streamlit App](#membuat-streamlit-app) *(House Price Predictor)*
 5. [Upload ke HF Spaces](#upload-ke-hf-spaces)
 6. [Tips dan Troubleshooting](#tips-dan-troubleshooting)
 
@@ -35,32 +35,25 @@ pip install streamlit scikit-learn joblib numpy pandas
 
 ### 2. Latih dan simpan model
 
+Model sudah dilatih di notebook (`1. Machine Learning/2. Supervised Learning/Implementasi/notebook.ipynb`) dan menghasilkan dua file `.pkl`:
+
 ```python
-# train_and_save.py
-from sklearn.datasets import load_iris
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
+# Cuplikan dari notebook — sudah dijalankan, model sudah tersimpan
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
 import joblib
 
-# Load data
-iris = load_iris()
-X, y = iris.data, iris.target
+# ... (lihat notebook lengkapnya)
 
-# Train
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+joblib.dump(lr_model, 'model_linear_regression.pkl')
+joblib.dump(dt_model, 'model_decision_tree.pkl')
+```
 
-pipeline = Pipeline([
-    ('scaler', StandardScaler()),
-    ('clf', RandomForestClassifier(n_estimators=100, random_state=42))
-])
-pipeline.fit(X_train, y_train)
+Salin kedua file model ke folder project deployment:
 
-# Simpan pipeline
-joblib.dump(pipeline, 'model.joblib')
-print("Model disimpan ke model.joblib")
-print(f"Akurasi test: {pipeline.score(X_test, y_test):.4f}")
+```bash
+cp model_linear_regression.pkl my-ml-app/
+cp model_decision_tree.pkl     my-ml-app/
 ```
 
 ### 3. Test aplikasi lokal
@@ -77,10 +70,11 @@ Struktur folder yang dibutuhkan HuggingFace Spaces:
 
 ```
 my-ml-app/
-├── app.py              ← Entry point utama (wajib bernama app.py)
-├── model.joblib        ← Model yang sudah dilatih
-├── requirements.txt    ← Daftar dependencies
-└── README.md           ← Deskripsi Space (opsional tapi dianjurkan)
+├── app.py                        ← Entry point utama (wajib bernama app.py)
+├── model_linear_regression.pkl   ← Model Linear Regression
+├── model_decision_tree.pkl       ← Model Decision Tree Regressor
+├── requirements.txt              ← Daftar dependencies
+└── README.md                     ← Deskripsi Space (opsional tapi dianjurkan)
 ```
 
 > ⚠️ **Penting:** HuggingFace Spaces dengan SDK Streamlit **wajib** punya file bernama `app.py` sebagai entry point.
@@ -89,7 +83,7 @@ my-ml-app/
 
 ## Membuat Streamlit App
 
-Berikut contoh aplikasi lengkap untuk klasifikasi Iris:
+Berikut contoh aplikasi lengkap untuk prediksi harga rumah menggunakan dua model:
 
 ```python
 # app.py
@@ -100,73 +94,88 @@ import pandas as pd
 
 # ---- Konfigurasi halaman ----
 st.set_page_config(
-    page_title="Iris Classifier",
-    page_icon="🌸",
+    page_title="House Price Predictor",
+    page_icon="🏠",
     layout="wide"
 )
 
 # ---- Load model (cache agar tidak reload tiap interaksi) ----
 @st.cache_resource
-def load_model():
-    return joblib.load('model.joblib')
+def load_models():
+    lr = joblib.load('model_linear_regression.pkl')
+    dt = joblib.load('model_decision_tree.pkl')
+    return lr, dt
 
-pipeline    = load_model()
-CLASS_NAMES = ['Iris Setosa', 'Iris Versicolor', 'Iris Virginica']
-CLASS_EMOJI = ['🌸', '🌺', '🌼']
+lr_model, dt_model = load_models()
+
+FEATURES = [
+    'bedrooms', 'bathrooms', 'sqft_living', 'sqft_lot',
+    'floors', 'waterfront', 'view', 'condition',
+    'sqft_above', 'sqft_basement', 'yr_built', 'yr_renovated'
+]
 
 # ---- Header ----
-st.title("🌸 Iris Flower Classifier")
-st.write("Prediksi jenis bunga Iris berdasarkan ukuran kelopak dan mahkotanya.")
+st.title("🏠 House Price Predictor")
+st.write("Prediksi harga rumah di King County, Washington menggunakan Linear Regression dan Decision Tree.")
 st.divider()
 
 # ---- Layout dua kolom ----
 col_input, col_result = st.columns([1, 1], gap="large")
 
 with col_input:
-    st.subheader("Input Pengukuran")
+    st.subheader("Spesifikasi Rumah")
 
-    sepal_length = st.slider("🌿 Sepal Length (cm)", 4.0, 8.0, 5.1, 0.1)
-    sepal_width  = st.slider("🌿 Sepal Width (cm)",  2.0, 4.5, 3.5, 0.1)
-    petal_length = st.slider("🌺 Petal Length (cm)", 1.0, 7.0, 1.4, 0.1)
-    petal_width  = st.slider("🌺 Petal Width (cm)",  0.1, 2.5, 0.2, 0.1)
+    bedrooms    = st.number_input("Jumlah Kamar Tidur",     min_value=1,    max_value=10,    value=3,     step=1)
+    bathrooms   = st.number_input("Jumlah Kamar Mandi",     min_value=1.0,  max_value=8.0,   value=2.0,   step=0.25)
+    sqft_living = st.number_input("Luas Rumah (sqft)",      min_value=300,  max_value=10000, value=1800,  step=50)
+    sqft_lot    = st.number_input("Luas Tanah (sqft)",      min_value=500,  max_value=100000,value=7000,  step=500)
+    floors      = st.number_input("Jumlah Lantai",          min_value=1.0,  max_value=3.5,   value=1.0,   step=0.5)
+    waterfront  = st.selectbox("Tepi Pantai (Waterfront)?", options=[0, 1], format_func=lambda x: "Ya" if x else "Tidak")
+    view        = st.slider("Skor View (0–4)",              min_value=0, max_value=4, value=0)
+    condition   = st.slider("Kondisi Rumah (1–5)",          min_value=1, max_value=5, value=3)
+    sqft_above  = st.number_input("Luas di Atas Tanah (sqft)", min_value=300, max_value=10000, value=1800, step=50)
+    sqft_basement = st.number_input("Luas Basement (sqft)", min_value=0,   max_value=5000,  value=0,     step=50)
+    yr_built    = st.number_input("Tahun Dibangun",         min_value=1900, max_value=2015,  value=1990,  step=1)
+    yr_renovated = st.number_input("Tahun Renovasi (0 = belum)", min_value=0, max_value=2015, value=0,   step=1)
 
-    features = np.array([[sepal_length, sepal_width, petal_length, petal_width]])
+    features = np.array([[bedrooms, bathrooms, sqft_living, sqft_lot,
+                          floors, waterfront, view, condition,
+                          sqft_above, sqft_basement, yr_built, yr_renovated]])
 
-    predict_btn = st.button("Prediksi Sekarang", type="primary", use_container_width=True)
+    predict_btn = st.button("Prediksi Harga", type="primary", use_container_width=True)
 
 with col_result:
     st.subheader("Hasil Prediksi")
 
     if predict_btn:
-        prediction  = pipeline.predict(features)[0]
-        probability = pipeline.predict_proba(features)[0]
+        pred_lr = lr_model.predict(features)[0]
+        pred_dt = dt_model.predict(features)[0]
 
-        # Tampilkan prediksi utama
-        st.success(f"{CLASS_EMOJI[prediction]} **{CLASS_NAMES[prediction]}**")
-        st.metric(
-            label="Confidence",
-            value=f"{probability[prediction]:.1%}"
-        )
+        st.metric(label="Linear Regression", value=f"${pred_lr:,.0f}")
+        st.metric(label="Decision Tree",      value=f"${pred_dt:,.0f}")
 
-        st.write("**Probabilitas semua kelas:**")
-        prob_df = pd.DataFrame({
-            'Kelas': [f"{e} {n}" for e, n in zip(CLASS_EMOJI, CLASS_NAMES)],
-            'Probabilitas': probability
-        })
-        st.bar_chart(prob_df.set_index('Kelas'))
+        # Visualisasi perbandingan
+        result_df = pd.DataFrame({
+            'Model': ['Linear Regression', 'Decision Tree'],
+            'Prediksi Harga ($)': [pred_lr, pred_dt]
+        }).set_index('Model')
+        st.bar_chart(result_df)
 
     else:
-        st.info("Atur slider di sebelah kiri lalu klik **Prediksi Sekarang**.")
+        st.info("Isi spesifikasi rumah di sebelah kiri lalu klik **Prediksi Harga**.")
 
 # ---- Info tambahan ----
 st.divider()
 with st.expander("Tentang Model"):
     st.write("""
-    Model ini menggunakan **Random Forest Classifier** yang dilatih pada dataset Iris klasik.
-    Dataset terdiri dari 150 sampel, 4 fitur, dan 3 kelas bunga.
+    Kedua model dilatih pada dataset **King County House Sales** (Washington, USA).
+    - **Linear Regression** — model baseline yang mudah diinterpretasi
+    - **Decision Tree Regressor** — `max_depth=6`, `min_samples_leaf=10`
+
+    **Fitur yang digunakan:** bedrooms, bathrooms, sqft_living, sqft_lot, floors,
+    waterfront, view, condition, sqft_above, sqft_basement, yr_built, yr_renovated.
     """)
-    st.write(f"Jumlah fitur input : **{pipeline.n_features_in_}**")
-    st.write(f"Kelas yang diprediksi : **{', '.join(CLASS_NAMES)}**")
+    st.write(f"Jumlah fitur input : **{len(FEATURES)}**")
 ```
 
 ---
@@ -182,7 +191,8 @@ with st.expander("Tentang Model"):
 5. Klik **Create Space**
 6. Upload file satu per satu lewat tab **Files** di Space kamu:
    - `app.py`
-   - `model.joblib`
+   - `model_linear_regression.pkl`
+   - `model_decision_tree.pkl`
    - `requirements.txt`
 
 ### Cara 2: Lewat Git (Direkomendasikan)
@@ -197,7 +207,8 @@ cd SPACE-NAME
 
 # 3. Salin semua file project ke sini
 cp /path/to/your/project/app.py .
-cp /path/to/your/project/model.joblib .
+cp /path/to/your/project/model_linear_regression.pkl .
+cp /path/to/your/project/model_decision_tree.pkl .
 cp /path/to/your/project/requirements.txt .
 
 # 4. Track file besar dengan git-lfs
@@ -229,19 +240,20 @@ pandas==2.2.2
 
 ```markdown
 ---
-title: Iris Flower Classifier
-emoji: 🌸
-colorFrom: pink
-colorTo: purple
+title: House Price Predictor
+emoji: 🏠
+colorFrom: blue
+colorTo: green
 sdk: streamlit
 sdk_version: 1.35.0
 app_file: app.py
 pinned: false
 ---
 
-# Iris Flower Classifier
+# House Price Predictor
 
-Aplikasi klasifikasi bunga Iris menggunakan Random Forest.
+Prediksi harga rumah di King County, Washington menggunakan
+Linear Regression dan Decision Tree Regressor.
 ```
 
 ---
