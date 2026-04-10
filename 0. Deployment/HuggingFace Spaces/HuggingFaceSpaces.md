@@ -1,4 +1,4 @@
-# Deploy ke HuggingFace Spaces dengan Streamlit
+# Deploy ke HuggingFace Spaces dengan Docker + Streamlit
 
 ## Daftar Isi
 
@@ -6,8 +6,9 @@
 2. [Persiapan Lokal](#persiapan-lokal)
 3. [Struktur Project](#struktur-project)
 4. [Membuat Streamlit App](#membuat-streamlit-app) *(House Price Predictor)*
-5. [Upload ke HF Spaces](#upload-ke-hf-spaces)
-6. [Tips dan Troubleshooting](#tips-dan-troubleshooting)
+5. [Dockerfile](#dockerfile)
+6. [Upload ke HF Spaces](#upload-ke-hf-spaces)
+7. [Tips dan Troubleshooting](#tips-dan-troubleshooting)
 
 ---
 
@@ -59,25 +60,34 @@ cp model_decision_tree.pkl     my-ml-app/
 ### 3. Test aplikasi lokal
 
 ```bash
-streamlit run app.py
+# Jalankan langsung (dari root folder project)
+streamlit run src/streamlit_app.py
+
+# Atau via Docker (sama persis seperti di HF Spaces)
+docker build -t house-price-app .
+docker run -p 7860:7860 house-price-app
+# Buka http://localhost:7860
 ```
 
 ---
 
 ## Struktur Project
 
-Struktur folder yang dibutuhkan HuggingFace Spaces:
+Saat membuat Space baru dengan SDK **Docker**, HuggingFace otomatis men-generate struktur berikut (dari template `streamlit/streamlit-template-space`):
 
 ```
 my-ml-app/
-├── app.py                        ← Entry point utama (wajib bernama app.py)
-├── model_linear_regression.pkl   ← Model Linear Regression
-├── model_decision_tree.pkl       ← Model Decision Tree Regressor
-├── requirements.txt              ← Daftar dependencies
-└── README.md                     ← Deskripsi Space (opsional tapi dianjurkan)
+├── src/
+│   └── streamlit_app.py          ← Aplikasi Streamlit (di dalam folder src/)
+├── .gitattributes                ← Konfigurasi git-lfs (sudah ada otomatis)
+├── Dockerfile                    ← Instruksi build container
+├── model_linear_regression.pkl   ← Model Linear Regression  ← kita tambahkan
+├── model_decision_tree.pkl       ← Model Decision Tree Regressor  ← kita tambahkan
+├── requirements.txt              ← Daftar dependencies Python
+└── README.md                     ← Metadata Space (header YAML wajib ada)
 ```
 
-> ⚠️ **Penting:** HuggingFace Spaces dengan SDK Streamlit **wajib** punya file bernama `app.py` sebagai entry point.
+> ⚠️ **Penting:** File app ada di `src/streamlit_app.py`, bukan `app.py` di root. Sesuaikan `CMD` di Dockerfile agar menunjuk ke path yang benar. Port **wajib 7860**.
 
 ---
 
@@ -86,7 +96,7 @@ my-ml-app/
 Berikut contoh aplikasi lengkap untuk prediksi harga rumah menggunakan dua model:
 
 ```python
-# app.py
+# src/streamlit_app.py
 import streamlit as st
 import joblib
 import numpy as np
@@ -102,6 +112,7 @@ st.set_page_config(
 # ---- Load model (cache agar tidak reload tiap interaksi) ----
 @st.cache_resource
 def load_models():
+    # model .pkl ada di root, src/ ada satu level di bawah
     lr = joblib.load('model_linear_regression.pkl')
     dt = joblib.load('model_decision_tree.pkl')
     return lr, dt
@@ -180,51 +191,74 @@ with st.expander("Tentang Model"):
 
 ---
 
+## Dockerfile
+
+HuggingFace meng-generate `Dockerfile` default saat Space dibuat. Kita perlu menyesuaikannya agar menunjuk ke `src/streamlit_app.py` dan menginstall dependencies kita:
+
+```dockerfile
+# Dockerfile
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Salin semua file ke container
+COPY . .
+
+# HuggingFace Spaces Docker wajib expose port 7860
+EXPOSE 7860
+
+# Jalankan Streamlit — file ada di src/streamlit_app.py
+CMD ["streamlit", "run", "src/streamlit_app.py", \
+     "--server.port=7860", \
+     "--server.address=0.0.0.0", \
+     "--server.headless=true"]
+```
+
+> **Kenapa `--server.headless=true`?** Agar Streamlit tidak mencoba membuka browser saat berjalan di dalam container.
+
+---
+
 ## Upload ke HF Spaces
 
-### Cara 1: Lewat Website (Termudah)
+### Alur: Buat Space → Clone → Edit → Push
+
+#### 1. Buat Space baru di HuggingFace
 
 1. Buka [huggingface.co](https://huggingface.co) dan login / buat akun
 2. Klik **New Space**
-3. Isi nama Space, pilih **Streamlit** sebagai SDK
+3. Isi nama Space, pilih **Docker** sebagai SDK
 4. Pilih visibility: **Public** (gratis) atau **Private**
-5. Klik **Create Space**
-6. Upload file satu per satu lewat tab **Files** di Space kamu:
-   - `app.py`
-   - `model_linear_regression.pkl`
-   - `model_decision_tree.pkl`
-   - `requirements.txt`
+5. Klik **Create Space** — HuggingFace akan generate struktur awal otomatis
 
-### Cara 2: Lewat Git (Direkomendasikan)
+#### 2. Clone repo Space ke lokal
 
 ```bash
-# 1. Install git-lfs untuk file besar (model)
+# Install git-lfs dulu (untuk file model .pkl yang bisa > 10 MB)
 git lfs install
 
-# 2. Clone repo Space yang baru dibuat
+# Clone repo Space (ganti USERNAME dan SPACE-NAME)
 git clone https://huggingface.co/spaces/USERNAME/SPACE-NAME
 cd SPACE-NAME
-
-# 3. Salin semua file project ke sini
-cp /path/to/your/project/app.py .
-cp /path/to/your/project/model_linear_regression.pkl .
-cp /path/to/your/project/model_decision_tree.pkl .
-cp /path/to/your/project/requirements.txt .
-
-# 4. Track file besar dengan git-lfs
-git lfs track "*.joblib"
-git lfs track "*.pkl"
-git add .gitattributes
-
-# 5. Commit dan push
-git add .
-git commit -m "Initial deployment"
-git push
 ```
 
-Space akan otomatis build dan berjalan dalam beberapa menit.
+#### 3. Edit isi file
 
-### File `requirements.txt`
+Setelah di-clone, struktur folder sudah ada. Yang perlu dilakukan:
+
+**a. Ganti isi `src/streamlit_app.py`** dengan kode aplikasi kita (lihat section [Membuat Streamlit App](#membuat-streamlit-app)).
+
+**b. Salin file model dari hasil notebook:**
+
+```bash
+cp /path/to/notebook/model_linear_regression.pkl .
+cp /path/to/notebook/model_decision_tree.pkl .
+```
+
+**c. Update `requirements.txt`:**
 
 ```txt
 streamlit==1.35.0
@@ -234,9 +268,9 @@ numpy==1.26.4
 pandas==2.2.2
 ```
 
-> ✅ **Selalu pin versi** — tanpa pin versi, update library bisa merusak model yang sudah disimpan.
+**d. Update `Dockerfile`** — pastikan CMD menunjuk ke `src/streamlit_app.py` dan port 7860 (lihat section [Dockerfile](#dockerfile)).
 
-### File `README.md` (untuk metadata Space)
+**e. Update `README.md`** — pastikan header YAML-nya:
 
 ```markdown
 ---
@@ -244,9 +278,8 @@ title: House Price Predictor
 emoji: 🏠
 colorFrom: blue
 colorTo: green
-sdk: streamlit
-sdk_version: 1.35.0
-app_file: app.py
+sdk: docker
+app_port: 7860
 pinned: false
 ---
 
@@ -255,6 +288,29 @@ pinned: false
 Prediksi harga rumah di King County, Washington menggunakan
 Linear Regression dan Decision Tree Regressor.
 ```
+
+> ⚠️ `app_port` harus sama dengan `EXPOSE` dan `--server.port` di Dockerfile (7860).  
+> Saat SDK Docker, field `sdk_version` dan `app_file` **tidak dipakai**.
+
+#### 4. Track model dengan git-lfs lalu push
+
+File `.gitattributes` sudah ada dari template HuggingFace dan sudah men-track `*.pkl`. Tinggal commit dan push:
+
+```bash
+# Verifikasi .pkl sudah di-track git-lfs
+cat .gitattributes
+
+# Stage semua perubahan
+git add .
+
+# Commit
+git commit -m "Add house price predictor app and models"
+
+# Push — Space otomatis build ulang
+git push
+```
+
+> ✅ **Selalu pin versi** di `requirements.txt` — tanpa pin versi, update library bisa merusak kompatibilitas model yang sudah disimpan.
 
 ---
 
