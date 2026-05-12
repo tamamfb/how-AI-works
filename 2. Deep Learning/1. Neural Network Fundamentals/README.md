@@ -67,7 +67,7 @@ Klik untuk baca lebih lanjut:
 
 | File | Deskripsi |
 |---|---|
-| [notebook.ipynb](Implementasi/notebook.ipynb) | Demo lengkap: bangun ANN dari nol (NumPy) lalu dengan PyTorch untuk klasifikasi MNIST |
+| [Colab ANN Demo]([Implementasi/notebook.ipynb](https://colab.research.google.com/drive/1NXhrjtPdRXz0P_vL6YSMUOLTF8QA3dGz?usp=sharing)) | Demo lengkap: bangun ANN dari nol (NumPy) lalu dengan PyTorch untuk klasifikasi MNIST |
 
 ---
 

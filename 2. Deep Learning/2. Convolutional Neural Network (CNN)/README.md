@@ -58,7 +58,7 @@ Klik untuk baca lebih lanjut:
 
 | File | Deskripsi |
 |---|---|
-| [notebook.ipynb](Implementasi/notebook.ipynb) | Demo CNN vs MLP: klasifikasi MNIST, visualisasi feature maps & filter, perbandingan akurasi head-to-head |
+| [Colab Demo CNN](https://colab.research.google.com/drive/1F3Ph5lPohx21OSF_RdPBDyU5N2PCfLLE?usp=sharing) | Demo CNN vs MLP: klasifikasi MNIST, visualisasi feature maps & filter, perbandingan akurasi head-to-head |
 
 ---
 
